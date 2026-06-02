@@ -8,6 +8,9 @@ type WorkerEntry = {
 };
 
 const clientDist = join(process.cwd(), "dist", "client");
+const backendOrigin =
+  (process.env.VITE_API_URL || process.env.API_PROXY_TARGET || "https://prashanth-lawyer-bknd.onrender.com")
+    .replace(/\/$/, "");
 
 function contentType(pathname: string): string {
   const ext = extname(pathname).toLowerCase();
@@ -60,6 +63,13 @@ async function sendNodeResponse(vercelRes: VercelResponse, webRes: Response) {
   }
 }
 
+async function proxyToBackend(pathname: string, search: string): Promise<Response> {
+  return fetch(`${backendOrigin}${pathname}${search}`, {
+    method: "GET",
+    headers: { Accept: "*/*" },
+  });
+}
+
 function serveStaticIfExists(pathname: string, res: VercelResponse): boolean {
   const cleanPath = pathname === "/" ? "/index.html" : pathname;
   const relative = normalize(cleanPath).replace(/^(\.\.[/\\])+/, "");
@@ -81,6 +91,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // Serve built client assets directly.
     if (serveStaticIfExists(url.pathname, res)) return;
+
+    // Images/files uploaded in backend live under /uploads.
+    if (url.pathname.startsWith("/uploads/")) {
+      const uploadRes = await proxyToBackend(url.pathname, url.search);
+      await sendNodeResponse(res, uploadRes);
+      return;
+    }
 
     // Delegate route rendering and API proxying to the built TanStack Start server bundle.
     const mod = (await import("../dist/server/index.js")) as { default: WorkerEntry };

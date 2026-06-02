@@ -1,0 +1,193 @@
+@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap");
+
+.admin-root {
+  --admin-white: #fafaf8;
+  --admin-dark: #0a0f1e;
+  --admin-dark2: #14213d;
+  --admin-emerald: #1b4d3e;
+  --admin-coral: #e8522a;
+  --admin-coral-light: #ff7b54;
+  --admin-gold: #c9951a;
+  --admin-muted: #6b7385;
+  --admin-border: rgba(10, 15, 30, 0.1);
+  --admin-soft: #f4f5f0;
+  --admin-soft-green: #eaf4f0;
+  --font-display: "Playfair Display", serif;
+  --font-body: "Plus Jakarta Sans", sans-serif;
+
+  font-family: var(--font-body);
+  background: var(--admin-soft);
+  color: var(--admin-dark);
+  min-height: 100vh;
+}
+
+.admin-display {
+  font-family: var(--font-display);
+}
+
+.admin-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 0.85rem;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--admin-muted);
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.admin-nav-link:hover {
+  color: var(--admin-dark);
+  background: rgba(10, 15, 30, 0.05);
+}
+
+.admin-nav-link.active {
+  color: var(--admin-white);
+  background: var(--admin-coral);
+}
+
+.admin-card {
+  background: var(--admin-white);
+  border: 1px solid var(--admin-border);
+  border-radius: 16px;
+  padding: 1.25rem 1.5rem;
+  box-shadow: 0 4px 24px rgba(10, 15, 30, 0.04);
+}
+
+.admin-btn-coral {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.65rem 1.35rem;
+  background: var(--admin-coral);
+  color: var(--admin-white);
+  font-weight: 600;
+  font-size: 0.82rem;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.admin-btn-coral:hover {
+  background: var(--admin-coral-light);
+}
+
+.admin-btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.65rem 1.2rem;
+  background: transparent;
+  color: var(--admin-dark);
+  font-weight: 600;
+  font-size: 0.82rem;
+  border: 2px solid var(--admin-dark);
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.admin-btn-ghost:hover {
+  border-color: var(--admin-coral);
+  color: var(--admin-coral);
+}
+
+.admin-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--admin-coral);
+}
+
+.admin-label::before {
+  content: "";
+  display: inline-block;
+  width: 20px;
+  height: 2px;
+  background: var(--admin-coral);
+  margin-right: 0.5rem;
+  vertical-align: middle;
+}
+
+.admin-badge-published {
+  background: var(--admin-soft-green);
+  color: var(--admin-emerald);
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 0.2rem 0.6rem;
+  border-radius: 50px;
+  text-transform: uppercase;
+}
+
+.admin-badge-draft {
+  background: rgba(10, 15, 30, 0.06);
+  color: var(--admin-muted);
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 0.2rem 0.6rem;
+  border-radius: 50px;
+  text-transform: uppercase;
+}
+
+.admin-input {
+  width: 100%;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid var(--admin-border);
+  border-radius: 10px;
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  background: var(--admin-white);
+}
+
+.admin-input:focus {
+  outline: none;
+  border-color: var(--admin-coral);
+  box-shadow: 0 0 0 3px rgba(232, 82, 42, 0.12);
+}
+
+.admin-sidebar {
+  width: 260px;
+  flex-shrink: 0;
+  background: var(--admin-white);
+  border-right: 1px solid var(--admin-border);
+  min-height: 100vh;
+  padding: 1.25rem 1rem;
+  position: sticky;
+  top: 0;
+  max-height: 100vh;
+  overflow-y: auto;
+}
+
+@media (max-width: 900px) {
+  .admin-sidebar {
+    width: 100%;
+    min-height: auto;
+    position: relative;
+    max-height: none;
+  }
+  .admin-layout {
+    flex-direction: column;
+  }
+}
+
+.admin-form-section {
+  padding-bottom: 0.5rem;
+}
+
+.admin-form-section-title {
+  margin-bottom: 0.75rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--admin-emerald);
+}
+
+.admin-form-section + .admin-form-section {
+  padding-top: 1rem;
+  border-top: 1px solid var(--admin-border);
+}

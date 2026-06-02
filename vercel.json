@@ -1,18 +1,15 @@
 {
   "buildCommand": "npm run build",
-  "outputDirectory": "dist/client",
-  "rewrites": [
-    {
-      "source": "/api/:path*",
-      "destination": "https://prashanth-lawyer-bknd.onrender.com/api/:path*"
-    },
-    {
-      "source": "/uploads/:path*",
-      "destination": "https://prashanth-lawyer-bknd.onrender.com/uploads/:path*"
-    },
-    {
-      "source": "/((?!api/|uploads/|assets/|site\\.html|cms-site\\.js|profile\\.jpg|favicon\\.ico).*)",
-      "destination": "/index.html"
+  "functions": {
+    "api/index.ts": {
+      "runtime": "@vercel/node@5.3.24",
+      "includeFiles": "dist/**"
     }
+  },
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "api/index.ts"
+    },
   ]
 }

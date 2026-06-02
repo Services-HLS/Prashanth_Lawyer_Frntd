@@ -38,11 +38,19 @@ function contentType(pathname: string): string {
 
 async function sendNodeResponse(vercelRes: VercelResponse, webRes: Response) {
   vercelRes.status(webRes.status);
+  const hopByHopHeaders = new Set([
+    "content-encoding",
+    "content-length",
+    "transfer-encoding",
+    "connection",
+  ]);
   webRes.headers.forEach((value, key) => {
+    if (hopByHopHeaders.has(key.toLowerCase())) return;
     vercelRes.setHeader(key, value);
   });
   try {
     const ab = await webRes.arrayBuffer();
+    vercelRes.setHeader("content-length", String(ab.byteLength));
     vercelRes.send(Buffer.from(ab));
   } catch (err) {
     console.error("[vercel] failed to stream response:", err);

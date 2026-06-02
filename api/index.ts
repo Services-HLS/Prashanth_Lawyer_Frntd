@@ -92,10 +92,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Serve built client assets directly.
     if (serveStaticIfExists(url.pathname, res)) return;
 
-    // Images/files uploaded in backend live under /uploads.
-    if (url.pathname.startsWith("/uploads/")) {
-      const uploadRes = await proxyToBackend(url.pathname, url.search);
-      await sendNodeResponse(res, uploadRes);
+    // Proxy backend API and uploaded files directly to Render backend.
+    if (url.pathname.startsWith("/api/") || url.pathname.startsWith("/uploads/")) {
+      const backendRes = await proxyToBackend(url.pathname, url.search);
+      await sendNodeResponse(res, backendRes);
       return;
     }
 

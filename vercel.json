@@ -9,6 +9,10 @@
     {
       "source": "/uploads/:path*",
       "destination": "https://prashanth-lawyer-bknd.onrender.com/uploads/:path*"
+    },
+    {
+      "source": "/((?!api/|uploads/|assets/|site\\.html|cms-site\\.js|profile\\.jpg|favicon\\.ico).*)",
+      "destination": "/index.html"
     }
   ]
 }

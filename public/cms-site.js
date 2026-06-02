@@ -140,14 +140,19 @@
     return "";
   }
 
-  function thumbHtml(src, alt) {
+  function thumbHtml(src, alt, kind, slug) {
     if (!src) return "";
+    var dataKind = kind ? ' data-kind="' + esc(kind) + '"' : "";
+    var dataSlug = slug ? ' data-slug="' + esc(slug) + '"' : "";
     return (
       '<div class="a-thumb-wrap"><img class="a-thumb" src="' +
       esc(src) +
       '" alt="' +
       esc(alt || "") +
-      '" loading="lazy" /></div>'
+      '" loading="lazy"' +
+      dataKind +
+      dataSlug +
+      ' onerror="window.cmsThumbFallback && window.cmsThumbFallback(this)" /></div>'
     );
   }
 
@@ -205,7 +210,7 @@
       '" data-kind="article" data-slug="' +
       esc(slug) +
       '">' +
-      thumbHtml(thumb, field(a, "title")) +
+      thumbHtml(thumb, field(a, "title"), "article", slug) +
       body +
       "</a>"
     );
@@ -240,7 +245,7 @@
       '" style="opacity:1;transform:none;color:inherit" data-cat="all" data-kind="book" data-slug="' +
       esc(slug) +
       '">' +
-      thumbHtml(thumb, field(b, "title")) +
+      thumbHtml(thumb, field(b, "title"), "book", slug) +
       body +
       "</a>"
     );
@@ -275,11 +280,49 @@
       '" style="opacity:1;transform:none;color:inherit" data-cat="all" data-kind="podcast" data-slug="' +
       esc(slug || "") +
       '">' +
-      thumbHtml(isUsableImage(thumb) ? thumb : "", field(p, "title")) +
+      thumbHtml(isUsableImage(thumb) ? thumb : "", field(p, "title"), "podcast", slug) +
       body +
       "</a>"
     );
   }
+
+  window.cmsThumbFallback = function (img) {
+    try {
+      if (!img || img.dataset.retried === "1") return;
+      var kind = img.dataset.kind || "";
+      var slug = img.dataset.slug || "";
+      if (!slug || (kind !== "article" && kind !== "book")) return;
+      img.dataset.retried = "1";
+      fetch(apiBase() + "/images/" + (kind === "article" ? "articles/" : "books/") + encodeURIComponent(slug), {
+        cache: "no-store",
+        headers: { Accept: "application/json" },
+      })
+        .then(function (res) {
+          return res.json();
+        })
+        .then(function (json) {
+          if (!json || !json.success || !json.data) return;
+          var candidate = "";
+          if (kind === "article") {
+            candidate = json.data.featured_image || "";
+            if (!isUsableImage(candidate)) {
+              var gallery = parseGallery(json.data.gallery_images);
+              candidate = gallery[0] || "";
+            }
+          } else {
+            candidate = json.data.cover_image || "";
+          }
+          if (isUsableImage(candidate)) {
+            img.src = candidate;
+          }
+        })
+        .catch(function () {
+          /* ignore */
+        });
+    } catch (e) {
+      /* ignore */
+    }
+  };
 
   function fallbackPodcasts() {
     return [

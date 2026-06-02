@@ -107,7 +107,7 @@
     if (!src) return false;
     var s = String(src).trim();
     if (isHttpImage(s)) return true;
-    if (s.indexOf("data:image/") === 0 && s.length < 600000) return true;
+    if (s.indexOf("data:image/") === 0) return true;
     return false;
   }
 

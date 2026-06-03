@@ -36,8 +36,8 @@ export function BookPage({ slug }: { slug: string }) {
     return (
       <PublicLayout>
         <p className="text-sm text-red-600">{error}</p>
-        <Link to="/classic" className="public-detail-back mt-4">
-          ← Back to site
+        <Link to="/books" className="public-detail-back mt-4">
+          ← Back to books
         </Link>
       </PublicLayout>
     );
@@ -47,8 +47,8 @@ export function BookPage({ slug }: { slug: string }) {
     return (
       <PublicLayout>
         <h1 className="font-serif text-2xl font-bold">Book not found</h1>
-        <Link to="/classic" className="public-detail-back mt-4">
-          ← Back to site
+        <Link to="/books" className="public-detail-back mt-4">
+          ← Back to books
         </Link>
       </PublicLayout>
     );
@@ -65,8 +65,8 @@ export function BookPage({ slug }: { slug: string }) {
     <PublicLayout>
       <div className="public-detail-book">
         <div>
-          <Link to="/classic" className="public-detail-back">
-            ← Back to site
+          <Link to="/books" className="public-detail-back">
+            ← Back to books
           </Link>
           {cover && (
             <figure className="public-detail-book-cover mt-6">
@@ -109,7 +109,7 @@ export function BookPage({ slug }: { slug: string }) {
               dangerouslySetInnerHTML={{ __html: bodyHtml }}
             />
           ) : (
-            bodyHtml && <p className="public-detail-lead">{bodyHtml.replace(/<[^>]+>/g, "")}</p>
+            bodyHtml && <p className="public-detail-lead">{stripHtml(bodyHtml)}</p>
           )}
         </div>
       </div>

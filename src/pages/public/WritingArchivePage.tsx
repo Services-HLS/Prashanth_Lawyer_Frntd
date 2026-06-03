@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { PublicLayout } from "@/components/public/PublicLayout";
+import { normalizeBookForDisplay } from "@/lib/content-format";
 import {
   fetchMysqlArticleImages,
   fetchMysqlBookCover,
@@ -9,6 +10,7 @@ import {
   rowStr,
   type ApiRow,
 } from "@/lib/public-api";
+import { BookCard } from "@/components/public/BookCard";
 
 import "@/styles/writing-archive.css";
 
@@ -89,11 +91,13 @@ async function fetchWriting(): Promise<{ articles: ApiRow[]; books: ApiRow[] }> 
   if (!res.ok || !json.success || !json.data) {
     throw new Error(json.error || `Failed to load (${res.status})`);
   }
-  let books = json.data.books ?? [];
+  let books = (json.data.books ?? []).map((row) => normalizeBookForDisplay(row));
   if (!books.length) {
-    const feedRes = await fetch("/api/v1/books", { cache: "no-store" });
+    const feedRes = await fetch("/api/v1/books/feed", { cache: "no-store" });
     const feedJson = (await feedRes.json()) as { success?: boolean; data?: ApiRow[] };
-    if (feedRes.ok && feedJson.success && feedJson.data) books = feedJson.data;
+    if (feedRes.ok && feedJson.success && feedJson.data) {
+      books = feedJson.data.map((row) => normalizeBookForDisplay(row));
+    }
   }
   const articles = (json.data.articles ?? []).filter(
     (a) => rowStr(a, "type").toLowerCase() !== "legal_opinion",
@@ -226,7 +230,7 @@ export function WritingArchivePage() {
                 ) : (
                   <div className="writing-archive-grid writing-archive-grid--books">
                     {filteredBooks.map((b) => (
-                      <BookArchiveCard key={rowStr(b, "id") || rowStr(b, "slug")} row={b} />
+                      <BookCard key={rowStr(b, "id") || rowStr(b, "slug")} row={b} />
                     ))}
                   </div>
                 )}
@@ -273,36 +277,6 @@ function ArticleArchiveCard({ row }: { row: ApiRow }) {
         <h3 className="writing-archive-card-title">{rowStr(row, "title")}</h3>
         {excerpt && <p className="writing-archive-card-excerpt">{excerpt}</p>}
         <span className="writing-archive-card-cta">Read full article →</span>
-      </div>
-    </Link>
-  );
-}
-
-function BookArchiveCard({ row }: { row: ApiRow }) {
-  const slug = rowStr(row, "slug");
-  const thumb = resolveBookThumb(row);
-  const excerpt = rowStr(row, "excerpt") || rowStr(row, "description");
-  const date = rowStr(row, "publication_date");
-
-  return (
-    <Link
-      to="/book/$slug"
-      params={{ slug }}
-      className={`writing-archive-card${thumb ? " with-image" : ""}`}
-      data-cat="book"
-    >
-      {thumb && (
-        <div className="writing-archive-card-thumb">
-          <img src={thumb} alt="" loading="lazy" decoding="async" />
-        </div>
-      )}
-      <div className="writing-archive-card-body">
-        <span className="writing-archive-tag guide">
-          Book{date ? ` · ${formatPublishDate(date)}` : ""}
-        </span>
-        <h3 className="writing-archive-card-title">{rowStr(row, "title")}</h3>
-        {excerpt && <p className="writing-archive-card-excerpt">{excerpt}</p>}
-        <span className="writing-archive-card-cta">View book →</span>
       </div>
     </Link>
   );

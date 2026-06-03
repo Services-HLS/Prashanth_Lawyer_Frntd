@@ -1,5 +1,11 @@
 import { stripHtml } from "./content-format";
 
+const METADATA_RE = /<!--\s*METADATA_START[\s\S]*?-->\s*$/i;
+
+function stripMetadata(text: string): string {
+  return text.replace(METADATA_RE, "").trim();
+}
+
 function escapeHtml(text: string): string {
   return text
     .replace(/&/g, "&amp;")
@@ -178,7 +184,7 @@ function renderSection(block: Extract<BookBlock, { kind: "section" }>): string {
 
 /** Full publication layout for book detail page */
 export function formatBookBodyHtml(description: string): string {
-  const raw = description.trim();
+  const raw = stripMetadata(description.trim());
   if (!raw) return "";
 
   if (raw.includes("<nav") && raw.includes("book-toc")) return raw;
@@ -221,7 +227,8 @@ function normalizeBookHtml(html: string): string {
 
 /** Short blurb for homepage cards (skips TOC block) */
 export function formatBookCardSummary(description: string, maxLen = 160): string {
-  const blocks = parseBookBlocks(description);
+  const cleaned = stripMetadata(description);
+  const blocks = parseBookBlocks(cleaned);
   for (const b of blocks) {
     if (b.kind === "paragraph" && b.text.length >= 40) {
       let text = b.text.replace(/\s+/g, " ").trim();
@@ -235,7 +242,7 @@ export function formatBookCardSummary(description: string, maxLen = 160): string
     }
   }
 
-  const fallback = stripHtml(description)
+  const fallback = stripHtml(cleaned)
     .split(/\n\n+/)
     .map((p) => p.trim())
     .find((p) => p.length >= 50 && !isTocEntry(p) && !isTocHeading(p));

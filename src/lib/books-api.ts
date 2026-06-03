@@ -26,9 +26,12 @@ export async function fetchPublishedBooks(): Promise<ApiRow[]> {
   const rows = await readJsonList(res);
   const normalized = rows.map((row) => normalizeBookForDisplay(row));
 
+  const needsCover = normalized
+    .map((row, index) => ({ row, index }))
+    .filter(({ row }) => !resolveBookCover(row) && (row.has_cover_image === 1 || row.has_cover_image === true));
+
   await Promise.all(
-    normalized.map(async (row, index) => {
-      if (resolveBookCover(row)) return;
+    needsCover.map(async ({ row, index }) => {
       const slug = rowStr(row, "slug");
       if (!slug) return;
       const cover = await fetchMysqlBookCover(slug);

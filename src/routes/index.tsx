@@ -31,24 +31,32 @@ function stripHeavyFields(rows: Record<string, unknown>[]): Record<string, unkno
   });
 }
 
+async function readJsonResponse(res: Response): Promise<Record<string, unknown>> {
+  const text = await res.text();
+  try {
+    return JSON.parse(text) as Record<string, unknown>;
+  } catch {
+    throw new Error(text.trim().slice(0, 160) || `API error ${res.status}`);
+  }
+}
+
 async function fetchWritingFromDb(): Promise<{ articles: Record<string, unknown>[]; books: Record<string, unknown>[] }> {
   const res = await fetch("/api/v1/site/writing", { cache: "no-store" });
-  const json = (await res.json()) as {
-    success?: boolean;
-    data?: { articles?: Record<string, unknown>[]; books?: Record<string, unknown>[] };
-    error?: string;
-  };
-  if (!res.ok || !json.success || !json.data) {
-    throw new Error(json.error || `API error ${res.status}`);
+  const json = await readJsonResponse(res);
+  const data = json.data as { articles?: Record<string, unknown>[]; books?: Record<string, unknown>[] } | undefined;
+  if (!res.ok || !json.success || !data) {
+    const err = json.error;
+    throw new Error(typeof err === "string" ? err : `API error ${res.status}`);
   }
-  let books = json.data.books ?? [];
+  let books = data.books ?? [];
   if (!books.length) {
     const feedRes = await fetch("/api/v1/books/feed", { cache: "no-store" });
-    const feedJson = (await feedRes.json()) as { success?: boolean; data?: Record<string, unknown>[] };
-    if (feedRes.ok && feedJson.success && feedJson.data) books = feedJson.data;
+    const feedJson = await readJsonResponse(feedRes);
+    const feedData = feedJson.data as Record<string, unknown>[] | undefined;
+    if (feedRes.ok && feedJson.success && feedData) books = feedData;
   }
   return {
-    articles: stripHeavyFields(json.data.articles ?? []),
+    articles: stripHeavyFields(data.articles ?? []),
     books: stripHeavyFields(books),
   };
 }

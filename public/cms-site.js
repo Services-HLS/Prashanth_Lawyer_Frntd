@@ -607,8 +607,8 @@
       cache: "no-store",
       headers: { Accept: "application/json" },
     });
-    var json = await res.json();
-    if (!res.ok) throw new Error((json && json.error) || "HTTP " + res.status);
+    var json = parseJsonResponse(await res.text());
+    if (!res.ok) throw new Error(apiErrorMessage(json, res.status));
     if (json.success && json.data) return json.data;
     if (Array.isArray(json)) return json;
     return [];
@@ -619,8 +619,8 @@
       cache: "no-store",
       headers: { Accept: "application/json" },
     });
-    var json = await res.json();
-    if (!res.ok) throw new Error((json && json.error) || "HTTP " + res.status);
+    var json = parseJsonResponse(await res.text());
+    if (!res.ok) throw new Error(apiErrorMessage(json, res.status));
     var list = [];
     if (json.success && json.data) list = json.data;
     else if (Array.isArray(json)) list = json;
@@ -631,14 +631,29 @@
     return list;
   }
 
+  function parseJsonResponse(text) {
+    try {
+      return JSON.parse(text);
+    } catch (e) {
+      throw new Error(text && text.trim() ? text.trim().slice(0, 160) : "Invalid JSON response");
+    }
+  }
+
+  function apiErrorMessage(json, status) {
+    if (!json) return "HTTP " + status;
+    if (typeof json.error === "string") return json.error;
+    if (json.error && typeof json.error.message === "string") return json.error.message;
+    return "HTTP " + status;
+  }
+
   async function fetchFromDatabase() {
     var base = apiBase();
     var res = await fetch(base + "/site/writing", {
       cache: "no-store",
       headers: { Accept: "application/json" },
     });
-    var json = await res.json();
-    if (!res.ok) throw new Error((json && json.error) || "HTTP " + res.status);
+    var json = parseJsonResponse(await res.text());
+    if (!res.ok) throw new Error(apiErrorMessage(json, res.status));
     if (!json.success || !json.data) throw new Error("Bad API response");
     var articles = json.data.articles || [];
     var books = json.data.books || [];

@@ -7,11 +7,15 @@
   },
   "rewrites": [
     {
-      "source": "/uploads/:path*",
-      "destination": "/api/uploads/:path*"
+      "source": "/api/:path*",
+      "destination": "https://prashanth-lawyer-bknd.onrender.com/api/:path*"
     },
     {
-      "source": "/((?!api/).*)",
+      "source": "/uploads/:path*",
+      "destination": "https://prashanth-lawyer-bknd.onrender.com/uploads/:path*"
+    },
+    {
+      "source": "/(.*)",
       "destination": "/api/index"
     }
   ]

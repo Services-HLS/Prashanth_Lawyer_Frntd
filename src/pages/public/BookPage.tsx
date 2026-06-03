@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
 import { PublicLayout } from "@/components/public/PublicLayout";
+import { stripHtml } from "@/lib/content-format";
 import {
   fetchPublishedBySlug,
   formatPublishDate,

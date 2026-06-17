@@ -15,6 +15,8 @@ function AdminLogin() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const [showPassword, setShowPassword] = useState(false);
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -62,14 +64,23 @@ function AdminLogin() {
             <label className="mb-1 block text-xs font-semibold uppercase text-[#6B7385]">
               Password
             </label>
-            <input
-              type="password"
-              className="admin-input"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              autoComplete="current-password"
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                className="admin-input pr-12"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                autoComplete="current-password"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 border-none bg-transparent p-0 text-xs font-semibold text-[#6B7385] hover:text-[#E8522A] cursor-pointer"
+              >
+                {showPassword ? "Hide" : "Show"}
+              </button>
+            </div>
           </div>
           {error && <p className="text-sm text-red-600">{error}</p>}
           <button type="submit" className="admin-btn-coral w-full" disabled={loading}>

@@ -8,6 +8,32 @@
       .replace(/"/g, "&quot;");
   }
 
+  function timeAgo(dateString) {
+    if (!dateString) return "";
+    // Replace dashes with slashes for date parsing compatibility
+    var date = new Date(dateString.replace(/-/g, "/"));
+    var now = new Date();
+    var seconds = Math.floor((now - date) / 1000);
+    if (seconds < 0) seconds = 0;
+    
+    var interval = Math.floor(seconds / 31536000);
+    if (interval >= 1) return interval === 1 ? "1 year ago" : interval + " years ago";
+    
+    interval = Math.floor(seconds / 2592000);
+    if (interval >= 1) return interval === 1 ? "1 month ago" : interval + " months ago";
+    
+    interval = Math.floor(seconds / 86400);
+    if (interval >= 1) return interval === 1 ? "yesterday" : interval + " days ago";
+    
+    interval = Math.floor(seconds / 3600);
+    if (interval >= 1) return interval === 1 ? "1 hour ago" : interval + " hours ago";
+    
+    interval = Math.floor(seconds / 60);
+    if (interval >= 1) return interval === 1 ? "1 minute ago" : interval + " minutes ago";
+    
+    return "just now";
+  }
+
   function stripHtml(html) {
     var d = document.createElement("div");
     d.innerHTML = html;
@@ -694,28 +720,328 @@
     }
   }
 
+  async function loadReviews() {
+    try {
+      var base = apiBase();
+      var res = await fetch(base + "/reviews", {
+        cache: "no-store",
+        headers: { Accept: "application/json" }
+      });
+      var json = parseJsonResponse(await res.text());
+      var reviews = [];
+      if (json && json.success && json.data) reviews = json.data;
+      else if (Array.isArray(json)) reviews = json;
+      else if (json && Array.isArray(json.data)) reviews = json.data;
+
+      var displayReviews = reviews.length > 0 ? reviews : [
+        {
+          name: "S.K.",
+          email: "startup.founder@gmail.com",
+          rating: 5,
+          comment: "Prasanth's rare combination of IIM business acumen and legal expertise made all the difference in our commercial dispute. He didn't just argue the law — he understood our business.",
+          avatar_url: ""
+        },
+        {
+          name: "M.R.",
+          email: "mfg.director@yahoo.com",
+          rating: 5,
+          comment: "Our GST audit was a nightmare until Prasanth stepped in. His understanding of both the commercial and legal dimensions resolved a year-long dispute in three months.",
+          avatar_url: ""
+        },
+        {
+          name: "J.L.",
+          email: "gc.europe@mnc.com",
+          rating: 5,
+          comment: "As a foreign company entering India, we needed a lawyer who could bridge international arbitration norms with Indian legal reality. Prasanth was exactly that.",
+          avatar_url: ""
+        }
+      ];
+
+      var totalRating = 0;
+      for (var i = 0; i < displayReviews.length; i++) {
+        totalRating += displayReviews[i].rating;
+      }
+      var avgRating = displayReviews.length > 0 ? (totalRating / displayReviews.length).toFixed(1) : "5.0";
+      
+      var avgNumberEl = document.getElementById("reviews-average-number");
+      var avgStarsEl = document.getElementById("reviews-average-stars");
+      var countLabelEl = document.getElementById("reviews-count-label");
+
+      if (avgNumberEl) avgNumberEl.innerText = avgRating;
+      if (avgStarsEl) {
+        var starsStr = "";
+        var rounded = Math.round(Number(avgRating));
+        for (var s = 0; s < 5; s++) {
+          starsStr += s < rounded ? "★" : "☆";
+        }
+        avgStarsEl.innerText = starsStr;
+      }
+      if (countLabelEl) {
+        countLabelEl.innerText = "Based on " + displayReviews.length + " " + (displayReviews.length === 1 ? "review" : "reviews");
+      }
+
+      var track = document.getElementById("reviews-marquee-track");
+      if (track) {
+        // Build repeated cards list for infinite scrolling
+        var repeatedReviews = [];
+        var repetitions = 3;
+        if (displayReviews.length > 0) {
+          // Make sure we have enough cards to fill the screen width and enable smooth looping
+          repetitions = Math.max(3, Math.ceil(8 / displayReviews.length));
+          for (var rIndex = 0; rIndex < repetitions; rIndex++) {
+            repeatedReviews = repeatedReviews.concat(displayReviews);
+          }
+        }
+
+        var cardsHtml = repeatedReviews.map(function(r) {
+          var initials = r.name ? r.name.split(" ").map(function(n) { return n[0]; }).join("").toUpperCase().slice(0, 2) : "C";
+          var avatarHtml = "";
+          if (r.avatar_url) {
+            avatarHtml = '<img class="author-avatar" src="' + esc(r.avatar_url) + '" alt="' + esc(r.name) + '" style="object-fit:cover; width:42px; height:42px;" />';
+          } else {
+            avatarHtml = '<div class="author-avatar">' + esc(initials) + '</div>';
+          }
+
+          var stars = "";
+          for (var k = 0; k < 5; k++) {
+            stars += k < r.rating ? "★" : "☆";
+          }
+
+          return (
+            '<div class="testimonial-card review-marquee-card" style="width: 85vw; max-width: 380px; flex-shrink: 0;">' +
+              '<div class="testimonial-stars" style="display:flex; justify-content:space-between; align-items:center;">' +
+                '<span>' + stars + '</span>' +
+                '<span style="font-size:0.68rem; color:var(--text-muted); font-family:var(--font-mono); font-weight:500;">' + timeAgo(r.created_at) + '</span>' +
+              '</div>' +
+              '<p class="testimonial-text">"' + esc(r.comment) + '"</p>' +
+              '<div class="testimonial-author">' +
+                avatarHtml +
+                '<div>' +
+                  '<div class="author-name">' + esc(r.name) + '</div>' +
+                '</div>' +
+              '</div>' +
+            '</div>'
+          );
+        }).join("");
+        track.innerHTML = cardsHtml;
+
+        // Initialize the infinite scrolling logic
+        initReviewsScroller(repetitions);
+      }
+    } catch (err) {
+      console.error("Failed to load reviews:", err);
+    }
+  }
+
+  function initReviewsScroller(repetitions) {
+    var container = document.getElementById("reviews-scroll-container");
+    var track = document.getElementById("reviews-marquee-track");
+    if (!container || !track) return;
+
+    // Clear previous loops
+    if (window.__reviewsAnimationFrame) {
+      cancelAnimationFrame(window.__reviewsAnimationFrame);
+      window.__reviewsAnimationFrame = null;
+    }
+    if (window.__reviewsScrollTimeout) {
+      clearTimeout(window.__reviewsScrollTimeout);
+      window.__reviewsScrollTimeout = null;
+    }
+
+    var isHovered = false;
+    var isInteracting = false;
+    var interactionTimeout = null;
+    var lastAutoScrollTime = 0;
+
+    function handleMouseEnter() {
+      isHovered = true;
+    }
+    function handleMouseLeave() {
+      isHovered = false;
+    }
+    function handleTouchStart() {
+      isHovered = true;
+      isInteracting = true;
+      if (interactionTimeout) clearTimeout(interactionTimeout);
+    }
+    function handleTouchEnd() {
+      isHovered = false;
+      if (interactionTimeout) clearTimeout(interactionTimeout);
+      interactionTimeout = setTimeout(function() {
+        isInteracting = false;
+      }, 3000);
+    }
+    function handleInteraction() {
+      isInteracting = true;
+      if (interactionTimeout) clearTimeout(interactionTimeout);
+      interactionTimeout = setTimeout(function() {
+        isInteracting = false;
+      }, 3000);
+    }
+
+    // Clean up existing listeners if any
+    if (container.__cleanupListeners) {
+      container.__cleanupListeners();
+    }
+
+    container.addEventListener("mouseenter", handleMouseEnter);
+    container.addEventListener("mouseleave", handleMouseLeave);
+    container.addEventListener("touchstart", handleTouchStart, { passive: true });
+    container.addEventListener("touchend", handleTouchEnd, { passive: true });
+
+    // Listen to manual scrolling (wheel, trackpad, drag)
+    function handleScrollEvent() {
+      var now = Date.now();
+      // If scroll was manual (not our auto-scroll step)
+      if (now - lastAutoScrollTime > 60) {
+        handleInteraction();
+      }
+      
+      // Perform instant boundary checks so user can scroll indefinitely
+      var currentScroll = container.scrollLeft;
+      var widthOfOneSet = track.scrollWidth / repetitions;
+      if (widthOfOneSet > 0) {
+        if (currentScroll < widthOfOneSet - 100) {
+          instantScrollTo(currentScroll + widthOfOneSet);
+        } else if (currentScroll >= widthOfOneSet * 2 + 100) {
+          instantScrollTo(currentScroll - widthOfOneSet);
+        }
+      }
+    }
+    container.addEventListener("scroll", handleScrollEvent, { passive: true });
+
+    var navButtons = document.querySelectorAll(".reviews-nav-btn");
+    navButtons.forEach(function(btn) {
+      btn.addEventListener("click", handleInteraction);
+    });
+
+    container.__cleanupListeners = function() {
+      container.removeEventListener("mouseenter", handleMouseEnter);
+      container.removeEventListener("mouseleave", handleMouseLeave);
+      container.removeEventListener("touchstart", handleTouchStart);
+      container.removeEventListener("touchend", handleTouchEnd);
+      container.removeEventListener("scroll", handleScrollEvent);
+      navButtons.forEach(function(btn) {
+        btn.removeEventListener("click", handleInteraction);
+      });
+    };
+
+    function instantScrollTo(left) {
+      var oldBehavior = container.style.scrollBehavior;
+      container.style.scrollBehavior = "auto";
+      container.scrollLeft = left;
+      var dummy = container.scrollLeft; // force reflow
+      container.style.scrollBehavior = oldBehavior;
+    }
+
+    // Initialize layout setup after browser layout calculation
+    window.__reviewsScrollTimeout = setTimeout(function() {
+      var widthOfOneSet = track.scrollWidth / repetitions;
+      if (widthOfOneSet > 0) {
+        container.scrollLeft = widthOfOneSet;
+      }
+
+      var lastTime = null;
+      var scrollAccumulator = 0;
+      var pixelsPerSecond = 35; // smooth slow crawl
+
+      function step(timestamp) {
+        if (!lastTime) lastTime = timestamp;
+        var delta = timestamp - lastTime;
+        lastTime = timestamp;
+
+        if (container && track) {
+          if (!isHovered && !isInteracting) {
+            scrollAccumulator += (pixelsPerSecond * delta) / 1000;
+            if (scrollAccumulator >= 1) {
+              var pixelsToScroll = Math.floor(scrollAccumulator);
+              scrollAccumulator -= pixelsToScroll;
+
+              var currentScroll = container.scrollLeft;
+              var widthOfOneSet = track.scrollWidth / repetitions;
+
+              if (widthOfOneSet > 0) {
+                if (currentScroll < widthOfOneSet) {
+                  instantScrollTo(currentScroll + widthOfOneSet);
+                } else if (currentScroll >= widthOfOneSet * 2) {
+                  instantScrollTo(currentScroll - widthOfOneSet);
+                }
+              }
+
+              lastAutoScrollTime = Date.now();
+              container.scrollLeft += pixelsToScroll;
+            }
+          } else {
+            scrollAccumulator = 0;
+          }
+          window.__reviewsAnimationFrame = requestAnimationFrame(step);
+        }
+      }
+
+      window.__reviewsAnimationFrame = requestAnimationFrame(step);
+    }, 150);
+  }
+
   window.addEventListener("message", function (event) {
-    if (!event.data || event.data.type !== "CMS_WRITING") return;
-    var articles = event.data.articles || [];
-    var books = event.data.books || [];
-    var podcasts = event.data.podcasts || [];
-    var articleList = articles.filter(function (a) {
-      return field(a, "type") !== "legal_opinion";
-    });
-    Promise.all([
-      loadArticleImagesFromMysql(articleList),
-      loadBookCoversFromMysql(books),
-    ]).then(function () {
-      render(articles, books, podcasts);
-    });
+    if (!event.data) return;
+    if (event.data.type === "CMS_WRITING") {
+      var articles = event.data.articles || [];
+      var books = event.data.books || [];
+      var podcasts = event.data.podcasts || [];
+      var articleList = articles.filter(function (a) {
+        return field(a, "type") !== "legal_opinion";
+      });
+      Promise.all([
+        loadArticleImagesFromMysql(articleList),
+        loadBookCoversFromMysql(books),
+      ]).then(function () {
+        render(articles, books, podcasts);
+      });
+    } else if (event.data.type === "RELOAD_REVIEWS") {
+      loadReviews();
+    }
   });
+
+  // Track interactions in the iframe and report to parent
+  (function () {
+    var hasReported = false;
+    function reportAction() {
+      if (hasReported) return;
+      try {
+        if (window.parent && window.parent !== window) {
+          window.parent.postMessage({ type: "USER_ACTION" }, "*");
+          hasReported = true;
+          // Clean up listeners immediately to avoid spamming messages
+          window.removeEventListener("click", reportAction);
+          window.removeEventListener("scroll", reportAction);
+          window.removeEventListener("keydown", reportAction);
+          window.removeEventListener("touchstart", reportAction);
+        }
+      } catch (e) {
+        // Ignore cross-origin issues
+      }
+    }
+
+    // Wait a short delay to avoid catching the initial load scroll or layout shifts
+    setTimeout(function () {
+      window.addEventListener("click", reportAction, { passive: true });
+      window.addEventListener("scroll", reportAction, { passive: true });
+      window.addEventListener("keydown", reportAction, { passive: true });
+      window.addEventListener("touchstart", reportAction, { passive: true });
+    }, 1000);
+  })();
 
   window.loadWritingFromMysql = loadWriting;
   window.cmsRenderWriting = render;
+  window.loadReviewsFromMysql = loadReviews;
 
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", loadWriting);
+    document.addEventListener("DOMContentLoaded", function() {
+      loadWriting();
+      loadReviews();
+    });
   } else {
     loadWriting();
+    loadReviews();
   }
 })();

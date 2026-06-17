@@ -1,6 +1,7 @@
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 
 import { ResourceManager } from "@/admin/components/ResourceManager";
+import { ReviewsManager } from "@/admin/components/ReviewsManager";
 import { getResource } from "@/admin/resources";
 
 const RESERVED = new Set(["admin", "login", "leads", "more"]);
@@ -18,6 +19,10 @@ export const Route = createFileRoute("/admin/$resource")({
 function AdminResourcePage() {
   const { resource: resourceId } = Route.useParams();
   const resource = getResource(resourceId);
+
+  if (resourceId === "reviews") {
+    return <ReviewsManager />;
+  }
 
   if (!resource) {
     return (

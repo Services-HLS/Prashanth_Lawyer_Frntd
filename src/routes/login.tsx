@@ -7,7 +7,7 @@ export const Route = createFileRoute("/login")({
   ssr: false,
   beforeLoad: () => {
     if (isAuthenticated()) {
-      throw redirect({ to: "/admin/" });
+      throw redirect({ to: "/admin" });
     }
   },
   component: LoginPage,
@@ -18,6 +18,7 @@ function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,16 +56,28 @@ function LoginPage() {
             required
           />
         </label>
-        <label className="mt-4 block text-sm font-medium">
-          Password
-          <input
-            type="password"
-            className="mt-1 w-full rounded-md border px-3 py-2"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            autoComplete="current-password"
-          />
-        </label>
+        <div className="mt-4">
+          <label className="block text-sm font-medium">
+            Password
+          </label>
+          <div className="relative mt-1">
+            <input
+              type={showPassword ? "text" : "password"}
+              className="w-full rounded-md border px-3 py-2 pr-12"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              autoComplete="current-password"
+              required
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 border-none bg-transparent p-0 text-xs font-semibold text-[#6B7385] hover:text-[#E8522A] cursor-pointer"
+            >
+              {showPassword ? "Hide" : "Show"}
+            </button>
+          </div>
+        </div>
         <button
           type="submit"
           disabled={pending}

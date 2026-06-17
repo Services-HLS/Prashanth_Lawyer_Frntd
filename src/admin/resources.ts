@@ -485,6 +485,32 @@ export const ADMIN_RESOURCES: AdminResource[] = [
       statusField,
     ],
   },
+  {
+    id: "reviews",
+    label: "Reviews",
+    endpoint: "reviews",
+    tier: "primary",
+    description: "Client reviews and ratings",
+    siteSection: "#testimonials",
+    listColumn: "name",
+    fields: [
+      { name: "name", label: "Name", type: "text", required: true },
+      { name: "email", label: "Email", type: "text", required: true },
+      { name: "rating", label: "Rating (1–5)", type: "number", required: true },
+      { name: "comment", label: "Comment", type: "textarea", rows: 4, required: true },
+      {
+        name: "status",
+        label: "Status",
+        type: "select",
+        options: [
+          { value: "pending", label: "Pending Approval" },
+          { value: "approved", label: "Approved" },
+          { value: "rejected", label: "Rejected" },
+        ],
+        required: true,
+      },
+    ],
+  },
 ];
 
 export function getResource(id: string): AdminResource | undefined {

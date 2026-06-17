@@ -88,7 +88,7 @@ function Index() {
   return (
     <iframe
       ref={iframeRef}
-      src="/site.html"
+      src="/site.html?v=7"
       title="Prasanth Raju — Advocate & Counsel"
       onLoad={() => {
         void injectWriting();

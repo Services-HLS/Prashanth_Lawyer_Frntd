@@ -11,7 +11,7 @@ export const Route = createFileRoute("/classic")({
 function ClassicSite() {
   return (
     <iframe
-      src="/site.html"
+      src="/site.html?v=7"
       title="Prasanth Raju — Full site"
       style={{
         position: "fixed",

@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WritingRouteImport } from './routes/writing'
 import { Route as TopicsRouteImport } from './routes/topics'
+import { Route as ReviewsRouteImport } from './routes/reviews'
 import { Route as PodcastRouteImport } from './routes/podcast'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ClassicRouteImport } from './routes/classic'
@@ -39,6 +40,11 @@ const WritingRoute = WritingRouteImport.update({
 const TopicsRoute = TopicsRouteImport.update({
   id: '/topics',
   path: '/topics',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReviewsRoute = ReviewsRouteImport.update({
+  id: '/reviews',
+  path: '/reviews',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PodcastRoute = PodcastRouteImport.update({
@@ -145,6 +151,7 @@ export interface FileRoutesByFullPath {
   '/classic': typeof ClassicRoute
   '/login': typeof LoginRoute
   '/podcast': typeof PodcastRouteWithChildren
+  '/reviews': typeof ReviewsRoute
   '/topics': typeof TopicsRoute
   '/writing': typeof WritingRoute
   '/admin/$resource': typeof AdminResourceRoute
@@ -167,6 +174,7 @@ export interface FileRoutesByTo {
   '/classic': typeof ClassicRoute
   '/login': typeof LoginRoute
   '/podcast': typeof PodcastRouteWithChildren
+  '/reviews': typeof ReviewsRoute
   '/topics': typeof TopicsRoute
   '/writing': typeof WritingRoute
   '/admin/$resource': typeof AdminResourceRoute
@@ -191,6 +199,7 @@ export interface FileRoutesById {
   '/classic': typeof ClassicRoute
   '/login': typeof LoginRoute
   '/podcast': typeof PodcastRouteWithChildren
+  '/reviews': typeof ReviewsRoute
   '/topics': typeof TopicsRoute
   '/writing': typeof WritingRoute
   '/admin/$resource': typeof AdminResourceRoute
@@ -216,6 +225,7 @@ export interface FileRouteTypes {
     | '/classic'
     | '/login'
     | '/podcast'
+    | '/reviews'
     | '/topics'
     | '/writing'
     | '/admin/$resource'
@@ -238,6 +248,7 @@ export interface FileRouteTypes {
     | '/classic'
     | '/login'
     | '/podcast'
+    | '/reviews'
     | '/topics'
     | '/writing'
     | '/admin/$resource'
@@ -261,6 +272,7 @@ export interface FileRouteTypes {
     | '/classic'
     | '/login'
     | '/podcast'
+    | '/reviews'
     | '/topics'
     | '/writing'
     | '/admin/$resource'
@@ -285,6 +297,7 @@ export interface RootRouteChildren {
   ClassicRoute: typeof ClassicRoute
   LoginRoute: typeof LoginRoute
   PodcastRoute: typeof PodcastRouteWithChildren
+  ReviewsRoute: typeof ReviewsRoute
   TopicsRoute: typeof TopicsRoute
   WritingRoute: typeof WritingRoute
   ArticleSlugRoute: typeof ArticleSlugRoute
@@ -306,6 +319,13 @@ declare module '@tanstack/react-router' {
       path: '/topics'
       fullPath: '/topics'
       preLoaderRoute: typeof TopicsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reviews': {
+      id: '/reviews'
+      path: '/reviews'
+      fullPath: '/reviews'
+      preLoaderRoute: typeof ReviewsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/podcast': {
@@ -487,6 +507,7 @@ const rootRouteChildren: RootRouteChildren = {
   ClassicRoute: ClassicRoute,
   LoginRoute: LoginRoute,
   PodcastRoute: PodcastRouteWithChildren,
+  ReviewsRoute: ReviewsRoute,
   TopicsRoute: TopicsRoute,
   WritingRoute: WritingRoute,
   ArticleSlugRoute: ArticleSlugRoute,
